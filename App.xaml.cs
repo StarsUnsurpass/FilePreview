@@ -1,8 +1,10 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using FilePreview.Services;
+using Serilog;
 
 namespace FilePreview;
 
@@ -16,21 +18,44 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Configure Serilog
+        var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "log-.txt");
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
+            .CreateLogger();
+
+        Log.Information("Application Starting...");
+
+        AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+        {
+            Log.Fatal(args.ExceptionObject as Exception, "Unhandled Exception");
+        };
+
         _mutex = new System.Threading.Mutex(true, "FilePreview-SingleInstance-Mutex", out bool createdNew);
         if (!createdNew)
         {
+            Log.Warning("Another instance is already running. Shutting down.");
             System.Windows.Application.Current.Shutdown();
             return;
         }
 
         base.OnStartup(e);
 
-        _explorerService = new ExplorerService();
-        _keyboardHook = new KeyboardHookService();
-        _keyboardHook.SpacePressed += OnSpacePressed;
-        _keyboardHook.Start();
+        try 
+        {
+            _explorerService = new ExplorerService();
+            _keyboardHook = new KeyboardHookService();
+            _keyboardHook.SpacePressed += OnSpacePressed;
+            _keyboardHook.Start();
 
-        SetupTrayIcon();
+            SetupTrayIcon();
+            Log.Information("Services initialized successfully.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error initializing services.");
+        }
     }
 
     private void SetupTrayIcon()
@@ -45,7 +70,10 @@ public partial class App : System.Windows.Application
                 appIcon = new Icon(streamResourceInfo.Stream);
             }
         }
-        catch { /* Fallback to default icon */ }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load tray icon, using default.");
+        }
 
         _notifyIcon = new NotifyIcon
         {
@@ -73,38 +101,55 @@ public partial class App : System.Windows.Application
 
     private void OnSpacePressed()
     {
+        Log.Debug("Space key event received.");
         System.Threading.Tasks.Task.Run(() =>
         {
-            var selectedFile = _explorerService?.GetSelectedFilePath();
-            if (!string.IsNullOrEmpty(selectedFile))
+            try
             {
-                Dispatcher.Invoke(() =>
+                var selectedFile = _explorerService?.GetSelectedFilePath();
+                if (!string.IsNullOrEmpty(selectedFile))
                 {
-                    if (_mainWindow == null)
+                    Log.Information("Selected file for preview: {FilePath}", selectedFile);
+                    Dispatcher.Invoke(() =>
                     {
-                        _mainWindow = new MainWindow();
-                    }
+                        if (_mainWindow == null)
+                        {
+                            _mainWindow = new MainWindow();
+                        }
 
-                    if (_mainWindow.IsVisible && _mainWindow.Tag?.ToString() == selectedFile)
-                    {
-                        _mainWindow.HidePreview();
-                    }
-                    else
-                    {
-                        _mainWindow.Tag = selectedFile;
-                        _mainWindow.ShowPreview(selectedFile);
-                    }
-                });
+                        if (_mainWindow.IsVisible && _mainWindow.Tag?.ToString() == selectedFile)
+                        {
+                            Log.Debug("Hiding preview for: {FilePath}", selectedFile);
+                            _mainWindow.HidePreview();
+                        }
+                        else
+                        {
+                            Log.Debug("Showing preview for: {FilePath}", selectedFile);
+                            _mainWindow.Tag = selectedFile;
+                            _mainWindow.ShowPreview(selectedFile);
+                        }
+                    });
+                }
+                else
+                {
+                    Log.Debug("No file selected or unable to retrieve file path.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error handling space press.");
             }
         });
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        Log.Information("Application Exiting...");
         _keyboardHook?.Dispose();
         _mutex?.ReleaseMutex();
         _mutex?.Dispose();
         _notifyIcon?.Dispose();
         base.OnExit(e);
+        Log.CloseAndFlush();
     }
 }

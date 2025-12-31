@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using FilePreview.Previewers;
+using Serilog;
 using Wpf.Ui.Controls;
 
 namespace FilePreview;
@@ -19,7 +20,10 @@ public partial class MainWindow : FluentWindow
             var iconUri = new Uri("pack://application:,,,/app.ico");
             this.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
         }
-        catch { /* Fallback to default icon */ }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load window icon.");
+        }
 
         // InfoBadge still shows on hover
         this.MouseEnter += (s, e) => InfoBadge.Visibility = Visibility.Visible;
@@ -31,7 +35,15 @@ public partial class MainWindow : FluentWindow
     {
         if (!string.IsNullOrEmpty(_currentFilePath))
         {
-            System.Windows.Clipboard.SetText(_currentFilePath);
+            try
+            {
+                System.Windows.Clipboard.SetText(_currentFilePath);
+                Log.Debug("Copied path to clipboard: {FilePath}", _currentFilePath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to copy path to clipboard.");
+            }
         }
     }
 
@@ -40,6 +52,7 @@ public partial class MainWindow : FluentWindow
         if (sender is System.Windows.Controls.MenuItem menuItem)
         {
             this.Topmost = menuItem.IsChecked;
+            Log.Debug("Toggled StayOnTop: {Topmost}", this.Topmost);
         }
     }
 
@@ -52,7 +65,15 @@ public partial class MainWindow : FluentWindow
     {
         if (!string.IsNullOrEmpty(_currentFilePath))
         {
-            System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{_currentFilePath}\"");
+            try
+            {
+                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{_currentFilePath}\"");
+                Log.Debug("Opened folder for file: {FilePath}", _currentFilePath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to open folder.");
+            }
         }
     }
 
@@ -60,6 +81,7 @@ public partial class MainWindow : FluentWindow
     {
         if (!string.IsNullOrEmpty(_currentFilePath))
         {
+            Log.Debug("Refreshing preview for: {FilePath}", _currentFilePath);
             ShowPreview(_currentFilePath);
         }
     }
@@ -100,7 +122,10 @@ public partial class MainWindow : FluentWindow
                 UseShellExecute = true
             });
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to open GitHub link.");
+        }
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -111,6 +136,7 @@ public partial class MainWindow : FluentWindow
     public void HidePreview()
     {
         if (_isShowingDialog) return;
+        Log.Debug("Hiding preview window.");
         this.Hide();
         PreviewContent.Content = null;
         _currentFilePath = null;
@@ -150,6 +176,7 @@ public partial class MainWindow : FluentWindow
         {
             try
             {
+                Log.Information("Opening file externally: {FilePath}", _currentFilePath);
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = _currentFilePath,
@@ -159,6 +186,7 @@ public partial class MainWindow : FluentWindow
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Could not open file: {FilePath}", _currentFilePath);
                 System.Windows.MessageBox.Show($"Could not open file: {ex.Message}");
             }
         }
@@ -166,36 +194,47 @@ public partial class MainWindow : FluentWindow
 
     public void ShowPreview(string filePath)
     {
-        _currentFilePath = filePath;
-        TitleTextBlock.Text = System.IO.Path.GetFileName(filePath);
-        FormatInfoText.Text = System.IO.Path.GetExtension(filePath).ToUpper().TrimStart('.');
-
-        UpdateFileIcon(filePath);
-
-        var previewer = _previewerFactory.GetPreviewer(filePath);
-        FrameworkElement content;
-
-        if (previewer != null)
+        try
         {
-            content = previewer.CreateControl(filePath);
-        }
-        else
-        {
-            content = new System.Windows.Controls.TextBlock
+            Log.Information("Starting preview for: {FilePath}", filePath);
+            _currentFilePath = filePath;
+            TitleTextBlock.Text = System.IO.Path.GetFileName(filePath);
+            FormatInfoText.Text = System.IO.Path.GetExtension(filePath).ToUpper().TrimStart('.');
+
+            UpdateFileIcon(filePath);
+
+            var previewer = _previewerFactory.GetPreviewer(filePath);
+            FrameworkElement content;
+
+            if (previewer != null)
             {
-                Text = "No preview available for this file type.",
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-                VerticalAlignment = System.Windows.VerticalAlignment.Center,
-                Foreground = System.Windows.Media.Brushes.Gray
-            };
+                Log.Debug("Using previewer: {PreviewerType}", previewer.GetType().Name);
+                content = previewer.CreateControl(filePath);
+            }
+            else
+            {
+                Log.Warning("No previewer found for file: {FilePath}", filePath);
+                content = new System.Windows.Controls.TextBlock
+                {
+                    Text = "No preview available for this file type.",
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                    VerticalAlignment = System.Windows.VerticalAlignment.Center,
+                    Foreground = System.Windows.Media.Brushes.Gray
+                };
+            }
+
+            PreviewContent.Content = content;
+            AdjustWindowSize(content, filePath);
+
+            this.Show();
+            this.Activate();
+            this.Focus();
         }
-
-        PreviewContent.Content = content;
-        AdjustWindowSize(content, filePath);
-
-        this.Show();
-        this.Activate();
-        this.Focus();
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error showing preview for file: {FilePath}", filePath);
+            System.Windows.MessageBox.Show($"Error showing preview: {ex.Message}");
+        }
     }
 
     private void UpdateFileIcon(string filePath)

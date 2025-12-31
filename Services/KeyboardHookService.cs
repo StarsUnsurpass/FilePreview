@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using Serilog;
 
 namespace FilePreview.Services;
 
@@ -20,19 +21,41 @@ public class KeyboardHookService : IDisposable
 
     public void Start()
     {
-        using (var process = Process.GetCurrentProcess())
-        using (var module = process.MainModule)
+        try
         {
-            if (module != null)
+            Log.Information("Starting KeyboardHookService...");
+            using (var process = Process.GetCurrentProcess())
+            using (var module = process.MainModule)
             {
-                var hModule = PInvoke.GetModuleHandle(module.ModuleName);
-                _hookHandle = PInvoke.SetWindowsHookEx(Windows.Win32.UI.WindowsAndMessaging.WINDOWS_HOOK_ID.WH_KEYBOARD_LL, _proc, hModule, 0);
+                if (module != null)
+                {
+                    var hModule = PInvoke.GetModuleHandle(module.ModuleName);
+                    _hookHandle = PInvoke.SetWindowsHookEx(Windows.Win32.UI.WindowsAndMessaging.WINDOWS_HOOK_ID.WH_KEYBOARD_LL, _proc, hModule, 0);
+                    
+                    if (_hookHandle == null || _hookHandle.IsInvalid)
+                    {
+                         Log.Error("Failed to install keyboard hook. Error code: {ErrorCode}", Marshal.GetLastWin32Error());
+                    }
+                    else
+                    {
+                         Log.Information("Keyboard hook installed successfully.");
+                    }
+                }
+                else
+                {
+                    Log.Error("Failed to get main module.");
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error starting KeyboardHookService.");
         }
     }
 
     public void Stop()
     {
+        Log.Information("Stopping KeyboardHookService...");
         _hookHandle?.Dispose();
     }
 
@@ -43,6 +66,7 @@ public class KeyboardHookService : IDisposable
             int vkCode = Marshal.ReadInt32(lParam);
             if (vkCode == 0x20) // VK_SPACE
             {
+                Log.Debug("Space key detected by hook.");
                 SpacePressed?.Invoke();
                 // If we want to prevent the space from being processed by the system (e.g. scrolling in explorer)
                 // return new LRESULT(1);
