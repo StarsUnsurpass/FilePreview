@@ -21,22 +21,26 @@ FilePreview 是一款旨在 Windows 平台上复刻并超越 macOS "Quick Look" 
 
 ## 更新日志
 
-### 2025-12-31
-- **新增日志记录功能**:
-  - 集成了 [Serilog](https://serilog.net/) 框架。
-  - 支持每日滚动的日志文件存储（位于 `logs/` 目录）。
-  - 实现了对应用生命周期（启动、退出）、键盘钩子事件、文件路径获取过程及预览器加载过程的全面监控。
-  - 增加了全局未处理异常捕获，提升了系统的可维护性与稳定性。
+### 2026-01-02
+- **扩展格式支持**:
+  - 新增 **CSV** 预览，支持表格化数据展示。
+  - 增强 **代码预览**，新增对 TS, TSX, JSX, Java, Kotlin, SQL, Shell, Batch, PowerShell, TOML, YAML 等数十种开发格式的支持。
+  - 将 PDF 预览升级为通用 **Web 预览**（基于 WebView2），新增对 SVG 矢量图及 HTML 网页的原生支持。
+- **架构优化**:
+  - 修复了在混合 WPF/WinForms 环境下的类型歧义编译问题。
+  - 重构了预览器工厂逻辑，提升了渲染引擎的匹配精度。
 
 ## 支持预览的格式
 
 FilePreview 采用插件化架构，目前已支持以下格式：
 
 - **图像**: JPG, PNG, BMP, GIF, WEBP, ICO 等。
-- **文本与代码**: TXT, JSON, XML, CS, PY, CPP, HTML, CSS 等（支持语法高亮）。
+- **文本与代码**: TXT, JSON, XML, CS, PY, CPP, HTML, CSS, TS, TSX, JSX, JAVA, KT, SQL, SH, BAT, PS1, TOML, YAML, LOG 等（支持语法高亮）。
 - **专业文档**:
   - **Markdown**: 渲染为格式化的 HTML 页面。
   - **PDF**: 高性能内置渲染。
+  - **CSV**: 表格化预览。
+- **矢量图形**: SVG 原生渲染。
 - **压缩包**: 支持查看 ZIP 内部文件结构。
 - **媒体文件**: MP4, MKV, AVI (视频) 及 MP3, WAV (音频) 的播放。
 - **文件夹**: 显示文件夹属性、包含项及最后修改时间。

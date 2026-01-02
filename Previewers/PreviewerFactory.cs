@@ -9,7 +9,8 @@ public class PreviewerFactory
     {
         new FolderPreviewer(),
         new MarkdownPreviewer(),
-        new PdfPreviewer(),
+        new WebPreviewer(),
+        new CsvPreviewer(),
         new ZipPreviewer(),
         new TextPreviewer(),
         new ImagePreviewer(),

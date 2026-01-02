@@ -7,7 +7,11 @@ namespace FilePreview.Previewers;
 
 public class TextPreviewer : IPreviewer
 {
-    private static readonly string[] Extensions = { ".txt", ".json", ".xml", ".cs", ".js", ".py", ".cpp", ".h", ".css", ".html", ".yaml", ".ini", ".log" };
+    private static readonly string[] Extensions = { 
+        ".txt", ".json", ".xml", ".cs", ".js", ".py", ".cpp", ".h", ".css", ".yaml", ".ini", ".log",
+        ".ts", ".tsx", ".jsx", ".java", ".kt", ".gradle", ".sql", ".sh", ".bat", ".ps1", 
+        ".config", ".props", ".targets", ".toml", ".dockerfile", ".yml"
+    };
 
     public bool CanPreview(string filePath)
     {
