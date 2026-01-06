@@ -21,6 +21,16 @@ FilePreview 是一款旨在 Windows 平台上复刻并超越 macOS "Quick Look" 
 
 ## 更新日志
 
+### 2026-01-06 (v1.1.0)
+- **新增预览器**:
+  - **十六进制 (Hex) 预览**: 支持查看二进制文件 (`.dll`, `.exe`, `.bin`, `.dat` 等) 的十六进制内容。
+- **扩展格式支持**:
+  - **代码与配置**: 新增 Go, Rust, Ruby, PHP, Vue, Lua, Swift, Dart, R, Perl, VB.NET, F#, Assembly 及 CMake, Docker, EditorConfig 等配置文件的语法高亮。
+  - **压缩包**: 扩展支持查看基于 Zip 的格式结构，包括 `.apk`, `.epub`, `.jar`, `.nupkg`, `.vsix` 等。
+  - **图像**: 新增 TIFF (`.tiff`, `.tif`) 支持。
+  - **多媒体**: 新增 WebM 视频及 AAC 音频支持。
+- **界面更新**: 更新了“关于”对话框的信息。
+
 ### 2026-01-02
 - **扩展格式支持**:
   - 新增 **CSV** 预览，支持表格化数据展示。
@@ -34,15 +44,16 @@ FilePreview 是一款旨在 Windows 平台上复刻并超越 macOS "Quick Look" 
 
 FilePreview 采用插件化架构，目前已支持以下格式：
 
-- **图像**: JPG, PNG, BMP, GIF, WEBP, ICO 等。
-- **文本与代码**: TXT, JSON, XML, CS, PY, CPP, HTML, CSS, TS, TSX, JSX, JAVA, KT, SQL, SH, BAT, PS1, TOML, YAML, LOG 等（支持语法高亮）。
+- **图像**: JPG, PNG, BMP, GIF, WEBP, ICO, TIFF。
+- **文本与代码**: 几乎所有主流编程语言 (C#, JS, Py, Go, Rust, Java, PHP 等) 及各类配置文件（支持语法高亮）。
+- **二进制文件**: DLL, EXE, BIN, DAT 等（十六进制视图）。
 - **专业文档**:
   - **Markdown**: 渲染为格式化的 HTML 页面。
   - **PDF**: 高性能内置渲染。
   - **CSV**: 表格化预览。
 - **矢量图形**: SVG 原生渲染。
-- **压缩包**: 支持查看 ZIP 内部文件结构。
-- **媒体文件**: MP4, MKV, AVI (视频) 及 MP3, WAV (音频) 的播放。
+- **压缩包**: ZIP, EPUB, APK, JAR, NUPKG 等（查看内部结构）。
+- **媒体文件**: MP4, MKV, AVI, WEBM (视频) 及 MP3, WAV, FLAC, AAC (音频)。
 - **文件夹**: 显示文件夹属性、包含项及最后修改时间。
 - **万能预览**: 通过 Shell 扩展支持 Word, Excel, PPT 等已安装软件的预览句柄。
 

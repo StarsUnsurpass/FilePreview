@@ -9,8 +9,8 @@ namespace FilePreview.Previewers;
 
 public class MediaPreviewer : IPreviewer
 {
-    private static readonly string[] VideoExtensions = { ".mp4", ".mkv", ".avi", ".mov", ".wmv" };
-    private static readonly string[] AudioExtensions = { ".mp3", ".wav", ".flac", ".ogg", ".wma", ".m4a" };
+    private static readonly string[] VideoExtensions = { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".webm" };
+    private static readonly string[] AudioExtensions = { ".mp3", ".wav", ".flac", ".ogg", ".wma", ".m4a", ".aac" };
 
     public bool CanPreview(string filePath)
     {

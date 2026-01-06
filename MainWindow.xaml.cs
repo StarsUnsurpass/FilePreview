@@ -96,16 +96,17 @@ public partial class MainWindow : FluentWindow
     private void About_Click(object sender, RoutedEventArgs e)
     {
         _isShowingDialog = true;
-        string aboutText = "FilePreview v1.0\n\n" +
+        string aboutText = "FilePreview v1.1\n\n" +
                            "一款 Windows 平台下的轻量级文件预览工具，旨在提供类似 macOS Quick Look 的极速体验。\n\n" +
                            "作者: StarsUnsurpass\n" +
                            "项目主页: github.com/StarsUnsurpass/FilePreview\n\n" +
                            "目前支持的格式:\n" +
-                           "• 图像: JPG, PNG, BMP, GIF, WEBP, ICO\n" +
-                           "• 文本与代码: TXT, MD, JSON, XML, CS, PY, CPP, HTML, CSS 等\n" +
+                           "• 图像: JPG, PNG, BMP, GIF, WEBP, ICO, TIFF\n" +
+                           "• 文本与代码: 几乎所有主流编程语言 (C#, JS, Py, Go, Rust, Java 等) 及配置\n" +
                            "• 专业文档: PDF, Markdown\n" +
-                           "• 多媒体: MP4, MKV, AVI, MP3, WAV, FLAC\n" +
-                           "• 压缩包: ZIP (查看内部结构)\n" +
+                           "• 多媒体: MP4, MKV, AVI, WEBM, MP3, WAV, FLAC, AAC\n" +
+                           "• 压缩包: ZIP, EPUB, JAR, APK, NUPKG (查看结构)\n" +
+                           "• 二进制: DLL, EXE, BIN (十六进制视图)\n" +
                            "• 其他: 文件夹概览, Office 文档 (利用系统句柄)";
 
         System.Windows.MessageBox.Show(this, aboutText, "关于 FilePreview", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);

@@ -10,7 +10,9 @@ public class TextPreviewer : IPreviewer
     private static readonly string[] Extensions = { 
         ".txt", ".json", ".xml", ".cs", ".js", ".py", ".cpp", ".h", ".css", ".yaml", ".ini", ".log",
         ".ts", ".tsx", ".jsx", ".java", ".kt", ".gradle", ".sql", ".sh", ".bat", ".ps1", 
-        ".config", ".props", ".targets", ".toml", ".dockerfile", ".yml"
+        ".config", ".props", ".targets", ".toml", ".dockerfile", ".yml",
+        ".go", ".rs", ".rb", ".php", ".vue", ".lua", ".swift", ".dart", ".r", ".pl", ".vb", ".fs", 
+        ".asm", ".s", ".cmake", ".editorconfig", ".env", ".gitignore", ".dockerignore"
     };
 
     public bool CanPreview(string filePath)

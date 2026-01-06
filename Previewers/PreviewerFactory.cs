@@ -15,6 +15,7 @@ public class PreviewerFactory
         new TextPreviewer(),
         new ImagePreviewer(),
         new MediaPreviewer(),
+        new HexPreviewer(),
         new ShellPreviewer()
     };
 

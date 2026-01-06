@@ -8,7 +8,7 @@ namespace FilePreview.Previewers;
 
 public class ImagePreviewer : IPreviewer
 {
-    private static readonly string[] Extensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".ico", ".webp" };
+    private static readonly string[] Extensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".ico", ".webp", ".tiff", ".tif" };
 
     public bool CanPreview(string filePath)
     {

@@ -11,7 +11,8 @@ public class ZipPreviewer : IPreviewer
 {
     public bool CanPreview(string filePath)
     {
-        return Path.GetExtension(filePath).ToLower() == ".zip";
+        var ext = Path.GetExtension(filePath).ToLower();
+        return ext == ".zip" || ext == ".nupkg" || ext == ".epub" || ext == ".jar" || ext == ".apk" || ext == ".vsix" || ext == ".xap";
     }
 
     public FrameworkElement CreateControl(string filePath)
