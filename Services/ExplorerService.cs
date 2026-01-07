@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Serilog;
 
+#nullable enable
+
 namespace FilePreview.Services;
 
 public class ExplorerService
@@ -34,7 +36,7 @@ public class ExplorerService
                 return null;
             }
 
-            foreach (dynamic window in shellWindows)
+            foreach (dynamic? window in shellWindows)
             {
                 if (window == null) continue;
                 
@@ -42,17 +44,26 @@ public class ExplorerService
                 {
                     if ((IntPtr)window.HWND == foregroundWindow)
                     {
-                        var shellWindow = window.Document;
+#nullable disable
+                        dynamic shellWindow = window.Document;
                         if (shellWindow != null)
                         {
-                            var selectedItems = shellWindow.SelectedItems();
+                            dynamic selectedItems = shellWindow.SelectedItems();
                             if (selectedItems != null && selectedItems.Count > 0)
                             {
-                                string path = selectedItems.Item(0).Path;
-                                Log.Debug("GetSelectedFilePath: Found path {Path}", path);
-                                return path;
+                                dynamic firstItem = selectedItems.Item(0);
+                                if (firstItem != null)
+                                {
+                                    string path = firstItem.Path;
+                                    if (!string.IsNullOrEmpty(path))
+                                    {
+                                        Log.Debug("GetSelectedFilePath: Found path {Path}", path);
+                                        return path;
+                                    }
+                                }
                             }
                         }
+#nullable restore
                     }
                 }
                 catch (Exception ex)
@@ -61,6 +72,7 @@ public class ExplorerService
                     Log.Verbose(ex, "GetSelectedFilePath: Error accessing window property.");
                 }
             }
+
 
             // Desktop check
             unsafe

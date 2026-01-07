@@ -96,7 +96,7 @@ public partial class MainWindow : FluentWindow
     private void About_Click(object sender, RoutedEventArgs e)
     {
         _isShowingDialog = true;
-        string aboutText = "FilePreview v1.1\n\n" +
+        string aboutText = "FilePreview v1.2.0\n\n" +
                            "一款 Windows 平台下的轻量级文件预览工具，旨在提供类似 macOS Quick Look 的极速体验。\n\n" +
                            "作者: StarsUnsurpass\n" +
                            "项目主页: github.com/StarsUnsurpass/FilePreview\n\n" +

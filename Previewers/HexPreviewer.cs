@@ -41,7 +41,7 @@ public class HexPreviewer : IPreviewer
             const int maxBytes = 16 * 1024; 
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             var buffer = new byte[Math.Min(stream.Length, maxBytes)];
-            stream.Read(buffer, 0, buffer.Length);
+            stream.ReadExactly(buffer);
 
             textEditor.Text = FormatHex(buffer, stream.Length > maxBytes);
         }
