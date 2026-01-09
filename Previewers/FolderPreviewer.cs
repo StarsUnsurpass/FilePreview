@@ -33,19 +33,40 @@ public class FolderPreviewer : IPreviewer
         {
             var files = dirInfo.GetFiles();
             var dirs = dirInfo.GetDirectories();
-            stackPanel.Children.Add(new System.Windows.Controls.TextBlock { Text = $"Contains: {dirs.Length} folders, {files.Length} files", Margin = new Thickness(0, 0, 0, 5) });
-            stackPanel.Children.Add(new System.Windows.Controls.TextBlock { Text = $"Last Modified: {dirInfo.LastWriteTime}", Margin = new Thickness(0, 0, 0, 20) });
+            long totalSize = files.Sum(f => f.Length);
+            
+            stackPanel.Children.Add(new TextBlock { Text = $"Contains: {dirs.Length} folders, {files.Length} files", Margin = new Thickness(0, 0, 0, 5) });
+            stackPanel.Children.Add(new TextBlock { Text = $"Top-level Size: {totalSize / 1024.0 / 1024.0:F2} MB", Margin = new Thickness(0, 0, 0, 5) });
+            stackPanel.Children.Add(new TextBlock { Text = $"Last Modified: {dirInfo.LastWriteTime}", Margin = new Thickness(0, 0, 0, 20) });
 
-            var listView = new System.Windows.Controls.ListView { MaxHeight = 300 };
-            foreach (var d in dirs.Take(10)) listView.Items.Add($"[Folder] {d.Name}");
-            foreach (var f in files.Take(20)) listView.Items.Add(f.Name);
+            var listView = new System.Windows.Controls.ListView 
+            { 
+                MaxHeight = 350,
+                BorderThickness = new Thickness(0),
+                Background = System.Windows.Media.Brushes.Transparent
+            };
             
-            if (dirs.Length + files.Length > 30)
+            foreach (var d in dirs.Take(20)) 
             {
-                listView.Items.Add("...");
+                listView.Items.Add(new { Name = d.Name, Type = "Folder", Size = "-", Date = d.LastWriteTime.ToString("yyyy-MM-dd HH:mm") });
             }
+            foreach (var f in files.Take(50)) 
+            {
+                listView.Items.Add(new { Name = f.Name, Type = "File", Size = $"{f.Length / 1024.0:F1} KB", Date = f.LastWriteTime.ToString("yyyy-MM-dd HH:mm") });
+            }
+
+            if (dirs.Length + files.Length > 70)
+            {
+                listView.Items.Add(new { Name = "...", Type = "", Size = "", Date = "" });
+            }
+
+            var gridView = new System.Windows.Controls.GridView();
+            gridView.Columns.Add(new System.Windows.Controls.GridViewColumn { Header = "Name", DisplayMemberBinding = new System.Windows.Data.Binding("Name"), Width = 300 });
+            gridView.Columns.Add(new System.Windows.Controls.GridViewColumn { Header = "Size", DisplayMemberBinding = new System.Windows.Data.Binding("Size"), Width = 80 });
+            gridView.Columns.Add(new System.Windows.Controls.GridViewColumn { Header = "Date", DisplayMemberBinding = new System.Windows.Data.Binding("Date"), Width = 150 });
+            listView.View = gridView;
             
-            stackPanel.Children.Add(new System.Windows.Controls.TextBlock { Text = "Contents (Preview):", FontWeight = FontWeights.SemiBold });
+            stackPanel.Children.Add(new TextBlock { Text = "Contents:", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0,0,0,5) });
             stackPanel.Children.Add(listView);
         }
         catch (UnauthorizedAccessException)

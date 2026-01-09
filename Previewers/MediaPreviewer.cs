@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Wpf.Ui.Controls;
 
 namespace FilePreview.Previewers;
 
@@ -32,34 +33,36 @@ public class MediaPreviewer : IPreviewer
 
         grid.Children.Add(mediaElement);
 
-        // Basic controls
-        var playButton = new System.Windows.Controls.Button 
+        var playIcon = new SymbolIcon(SymbolRegular.Play24);
+        var pauseIcon = new SymbolIcon(SymbolRegular.Pause24);
+
+        var playButton = new Wpf.Ui.Controls.Button 
         { 
-            Content = "Play", 
+            Icon = pauseIcon,
             HorizontalAlignment = System.Windows.HorizontalAlignment.Center, 
             VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(0,0,0,10)
+            Margin = new Thickness(0,0,0,20),
+            Padding = new Thickness(15, 10, 15, 10),
+            Appearance = ControlAppearance.Primary
         };
         
         playButton.Click += (s, e) => 
         {
-            if (playButton.Content.ToString() == "Play")
+            if (playButton.Icon == playIcon)
             {
                 mediaElement.Play();
-                playButton.Content = "Pause";
+                playButton.Icon = pauseIcon;
             }
             else
             {
                 mediaElement.Pause();
-                playButton.Content = "Play";
+                playButton.Icon = playIcon;
             }
         };
 
         grid.Children.Add(playButton);
         
-        mediaElement.Play(); // Auto play
-        playButton.Content = "Pause";
-
+        mediaElement.Play(); 
         return grid;
     }
 }

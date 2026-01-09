@@ -42,6 +42,7 @@
                                 <MenuItem Header="File">
                                     <MenuItem Header="Open with Default" Click="OpenButton_Click" Icon="{ui:SymbolIcon Symbol=Open24}"/>
                                     <MenuItem Header="Copy File Path" Click="CopyPath_Click" Icon="{ui:SymbolIcon Symbol=Copy24}"/>
+                                    <MenuItem x:Name="CopyContentMenuItem" Header="Copy Text Content" Click="CopyContent_Click" Icon="{ui:SymbolIcon Symbol=DocumentCopy24}"/>
                                     <Separator />
                                     <MenuItem Header="Close" Click="CloseButton_Click" Icon="{ui:SymbolIcon Symbol=Dismiss24}"/>
                                 </MenuItem>

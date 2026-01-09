@@ -47,6 +47,42 @@ public partial class MainWindow : FluentWindow
         }
     }
 
+    private void CopyContent_Click(object sender, RoutedEventArgs e)
+    {
+        string? textToCopy = null;
+
+        if (PreviewContent.Content is ICSharpCode.AvalonEdit.TextEditor textEditor)
+        {
+            textToCopy = textEditor.Text;
+        }
+        else if (PreviewContent.Content is System.Windows.Controls.TextBlock textBlock)
+        {
+            textToCopy = textBlock.Text;
+        }
+        else if (PreviewContent.Content is System.Windows.Controls.ScrollViewer scrollViewer && scrollViewer.Content is System.Windows.Controls.StackPanel stackPanel)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var child in stackPanel.Children)
+            {
+                if (child is System.Windows.Controls.TextBlock tb) sb.AppendLine(tb.Text);
+            }
+            textToCopy = sb.ToString();
+        }
+
+        if (!string.IsNullOrEmpty(textToCopy))
+        {
+            try
+            {
+                System.Windows.Clipboard.SetText(textToCopy);
+                Log.Debug("Copied preview content to clipboard.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to copy content to clipboard.");
+            }
+        }
+    }
+
     private void StayOnTop_Click(object sender, RoutedEventArgs e)
     {
         if (sender is System.Windows.Controls.MenuItem menuItem)
@@ -96,18 +132,20 @@ public partial class MainWindow : FluentWindow
     private void About_Click(object sender, RoutedEventArgs e)
     {
         _isShowingDialog = true;
-        string aboutText = "FilePreview v1.2.0\n\n" +
+        string aboutText = "FilePreview v1.3.0\n\n" +
                            "一款 Windows 平台下的轻量级文件预览工具，旨在提供类似 macOS Quick Look 的极速体验。\n\n" +
                            "作者: StarsUnsurpass\n" +
                            "项目主页: github.com/StarsUnsurpass/FilePreview\n\n" +
                            "目前支持的格式:\n" +
                            "• 图像: JPG, PNG, BMP, GIF, WEBP, ICO, TIFF\n" +
-                           "• 文本与代码: 几乎所有主流编程语言 (C#, JS, Py, Go, Rust, Java 等) 及配置\n" +
+                           "• 文本与代码: 几乎所有主流编程语言 (C#, JS, Py, Go, Rust, Java, Vue, Svelte, Astro 等) 及配置文件\n" +
                            "• 专业文档: PDF, Markdown\n" +
+                           "• 字体: TTF, OTF, WOFF, WOFF2\n" +
+                           "• 证书: CER, CRT, DER, PEM\n" +
                            "• 多媒体: MP4, MKV, AVI, WEBM, MP3, WAV, FLAC, AAC\n" +
-                           "• 压缩包: ZIP, EPUB, JAR, APK, NUPKG (查看结构)\n" +
+                           "• 压缩包: ZIP, EPUB, JAR, APK, NUPKG, VSIX (查看结构)\n" +
                            "• 二进制: DLL, EXE, BIN (十六进制视图)\n" +
-                           "• 其他: 文件夹概览, Office 文档 (利用系统句柄)";
+                           "• 其他: 文件夹概览 (带统计信息), Office 文档 (利用系统句柄)";
 
         System.Windows.MessageBox.Show(this, aboutText, "关于 FilePreview", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
         _isShowingDialog = false;
@@ -243,18 +281,22 @@ public partial class MainWindow : FluentWindow
         var ext = System.IO.Path.GetExtension(filePath).ToLower();
         FileIcon.Symbol = ext switch
         {
-            ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" => SymbolRegular.Image24,
-            ".zip" or ".rar" or ".7z" => SymbolRegular.Archive24,
-            ".mp4" or ".mkv" or ".avi" => SymbolRegular.Video24,
+            ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" or ".ico" or ".webp" => SymbolRegular.Image24,
+            ".zip" or ".rar" or ".7z" or ".tar" or ".gz" or ".nupkg" => SymbolRegular.Archive24,
+            ".mp4" or ".mkv" or ".avi" or ".mov" or ".webm" => SymbolRegular.Video24,
+            ".mp3" or ".wav" or ".flac" or ".aac" or ".ogg" => SymbolRegular.MusicNote224,
+            ".pdf" => SymbolRegular.DocumentPdf24,
+            ".html" or ".htm" or ".js" or ".ts" or ".css" => SymbolRegular.Code24,
+            ".cs" or ".cpp" or ".py" or ".go" or ".rs" => SymbolRegular.CodeBlock24,
+            ".ttf" or ".otf" or ".woff" => SymbolRegular.TextFont24,
+            ".cer" or ".crt" or ".pfx" => SymbolRegular.Certificate24,
+            ".md" or ".markdown" => SymbolRegular.DocumentText24,
             _ => System.IO.Directory.Exists(filePath) ? SymbolRegular.Folder24 : SymbolRegular.Document24
         };
     }
 
     private void AdjustWindowSize(FrameworkElement content, string filePath)
     {
-        double screenWidth = SystemParameters.PrimaryScreenWidth;
-        double screenHeight = SystemParameters.PrimaryScreenHeight;
-
         double targetWidth = 800;
         double targetHeight = 600;
 
@@ -262,28 +304,41 @@ public partial class MainWindow : FluentWindow
         {
             targetWidth = bitmap.PixelWidth;
             targetHeight = bitmap.PixelHeight;
-
-            double ratio = Math.Min(screenWidth * 0.8 / targetWidth, screenHeight * 0.8 / targetHeight);
-            if (ratio < 1)
-            {
-                targetWidth *= ratio;
-                targetHeight *= ratio;
-            }
         }
-        else if (content is System.Windows.Controls.StackPanel) // Folder
+        else if (content is System.Windows.Controls.StackPanel || (content is System.Windows.Controls.ScrollViewer sv && sv.Content is System.Windows.Controls.StackPanel))
         {
             targetWidth = 600;
             targetHeight = 500;
         }
 
-        this.Width = Math.Max(400, targetWidth);
-        this.Height = Math.Max(300, targetHeight + 50);
-
-        // Center on screen
+        // Get the screen where the mouse is
         System.Drawing.Point mousePos;
         Windows.Win32.PInvoke.GetCursorPos(out mousePos);
+        
+        var screen = System.Windows.Forms.Screen.FromPoint(mousePos);
+        var workingArea = screen.WorkingArea;
 
-        this.Left = (screenWidth - this.Width) / 2;
-        this.Top = (screenHeight - this.Height) / 2;
+        double maxW = workingArea.Width * 0.85;
+        double maxH = workingArea.Height * 0.85;
+
+        double ratio = Math.Min(maxW / targetWidth, maxH / targetHeight);
+        if (ratio < 1)
+        {
+            targetWidth *= ratio;
+            targetHeight *= ratio;
+        }
+
+        this.Width = Math.Max(400, targetWidth);
+        this.Height = Math.Max(300, targetHeight + 45); // 45 is title bar height
+
+        // Center on mouse position but keep within working area
+        this.Left = mousePos.X - this.Width / 2;
+        this.Top = mousePos.Y - this.Height / 2;
+
+        // Boundary checks
+        if (this.Left < workingArea.Left) this.Left = workingArea.Left;
+        if (this.Top < workingArea.Top) this.Top = workingArea.Top;
+        if (this.Left + this.Width > workingArea.Right) this.Left = workingArea.Right - this.Width;
+        if (this.Top + this.Height > workingArea.Bottom) this.Top = workingArea.Bottom - this.Height;
     }
 }
