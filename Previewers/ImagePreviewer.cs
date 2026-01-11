@@ -25,13 +25,30 @@ public class ImagePreviewer : IPreviewer
             VerticalAlignment = System.Windows.VerticalAlignment.Center
         };
 
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit();
-        bitmap.UriSource = new Uri(filePath);
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.EndInit();
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            try
+            {
+                var bitmap = new BitmapImage();
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.StreamSource = stream;
+                    bitmap.EndInit();
+                    bitmap.Freeze(); // Essential for cross-thread access
+                }
 
-        image.Source = bitmap;
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    image.Source = bitmap;
+                });
+            }
+            catch (Exception)
+            {
+                // Handle error or leave empty
+            }
+        });
 
         return image;
     }

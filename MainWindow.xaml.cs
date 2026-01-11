@@ -132,7 +132,7 @@ public partial class MainWindow : FluentWindow
     private void About_Click(object sender, RoutedEventArgs e)
     {
         _isShowingDialog = true;
-        string aboutText = "FilePreview v1.3.0\n\n" +
+        string aboutText = "FilePreview v1.4.0\n\n" +
                            "一款 Windows 平台下的轻量级文件预览工具，旨在提供类似 macOS Quick Look 的极速体验。\n\n" +
                            "作者: StarsUnsurpass\n" +
                            "项目主页: github.com/StarsUnsurpass/FilePreview\n\n" +
@@ -282,12 +282,12 @@ public partial class MainWindow : FluentWindow
         FileIcon.Symbol = ext switch
         {
             ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" or ".ico" or ".webp" => SymbolRegular.Image24,
-            ".zip" or ".rar" or ".7z" or ".tar" or ".gz" or ".nupkg" => SymbolRegular.Archive24,
+            ".zip" or ".rar" or ".7z" or ".tar" or ".gz" or ".nupkg" or ".iso" or ".img" or ".torrent" => SymbolRegular.Archive24,
             ".mp4" or ".mkv" or ".avi" or ".mov" or ".webm" => SymbolRegular.Video24,
             ".mp3" or ".wav" or ".flac" or ".aac" or ".ogg" => SymbolRegular.MusicNote224,
             ".pdf" => SymbolRegular.DocumentPdf24,
-            ".html" or ".htm" or ".js" or ".ts" or ".css" => SymbolRegular.Code24,
-            ".cs" or ".cpp" or ".py" or ".go" or ".rs" => SymbolRegular.CodeBlock24,
+            ".html" or ".htm" or ".js" or ".ts" or ".css" or ".tsv" => SymbolRegular.Code24,
+            ".cs" or ".cpp" or ".py" or ".go" or ".rs" or ".diff" or ".patch" => SymbolRegular.CodeBlock24,
             ".ttf" or ".otf" or ".woff" => SymbolRegular.TextFont24,
             ".cer" or ".crt" or ".pfx" => SymbolRegular.Certificate24,
             ".md" or ".markdown" => SymbolRegular.DocumentText24,

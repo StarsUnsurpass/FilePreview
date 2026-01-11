@@ -55,26 +55,36 @@ public class PreviewHandlerHost : HwndHost
 
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
     {
-        var guid = GetPreviewHandlerGuid(_filePath!);
-        if (guid == null) return new HandleRef(this, IntPtr.Zero);
-
-        var type = Type.GetTypeFromCLSID(new Guid(guid));
-        _previewHandler = (IPreviewHandler?)Activator.CreateInstance(type!);
-
-        if (_previewHandler is IInitializeWithFile initFile)
+        try
         {
-            initFile.Initialize(_filePath!, 0);
+            var guid = GetPreviewHandlerGuid(_filePath!);
+            if (guid == null) return new HandleRef(this, IntPtr.Zero);
+
+            var type = Type.GetTypeFromCLSID(new Guid(guid));
+            _previewHandler = (IPreviewHandler?)Activator.CreateInstance(type!);
+
+            if (_previewHandler is IInitializeWithFile initFile)
+            {
+                initFile.Initialize(_filePath!, 0);
+            }
+            else if (_previewHandler is IInitializeWithItem initItem)
+            {
+                // Implementation for IInitializeWithItem omitted for brevity
+            }
+
+            var rect = new RECT { left = 0, top = 0, right = (int)ActualWidth, bottom = (int)ActualHeight };
+            _previewHandler!.SetWindow(hwndParent.Handle, ref rect);
+            _previewHandler.DoPreview();
+
+            return new HandleRef(this, hwndParent.Handle);
         }
-        else if (_previewHandler is IInitializeWithItem initItem)
+        catch (Exception)
         {
-            // Implementation for IInitializeWithItem omitted for brevity
+            // If the shell preview handler fails, we just don't show anything (or it remains empty)
+            // Ideally we might want to inform the user, but we can't easily modify the visual tree from here 
+            // without being complex. Returning Zero handle is safe.
+            return new HandleRef(this, IntPtr.Zero);
         }
-
-        var rect = new RECT { left = 0, top = 0, right = (int)ActualWidth, bottom = (int)ActualHeight };
-        _previewHandler!.SetWindow(hwndParent.Handle, ref rect);
-        _previewHandler.DoPreview();
-
-        return new HandleRef(this, hwndParent.Handle);
     }
 
     protected override void DestroyWindowCore(HandleRef hwnd)

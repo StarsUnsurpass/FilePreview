@@ -16,7 +16,9 @@ public class TextPreviewer : IPreviewer
         ".jsonld", ".webmanifest", ".lock", ".mdx", ".svelte", ".astro", ".mjs", ".cjs",
         ".vbs", ".bas", ".cls", ".frm", ".ctl", ".def", ".p12", ".pem", ".key",
         ".csproj", ".sln", ".user", ".resx", ".xaml", ".targets", ".props", ".manifest",
-        ".babelrc", ".eslintrc", ".prettierrc", ".stylelintrc", ".browserslistrc"
+        ".babelrc", ".eslintrc", ".prettierrc", ".stylelintrc", ".browserslistrc",
+        ".gcode", ".diff", ".patch", ".prop", ".properties", ".conf", ".cfg", ".tcl", ".tk", ".gradle.kts", ".fsproj", ".vbproj",
+        ".reg", ".srt", ".vtt"
     };
 
     public bool CanPreview(string filePath)
@@ -35,46 +37,70 @@ public class TextPreviewer : IPreviewer
             FontSize = 14,
             Background = System.Windows.Media.Brushes.Transparent,
             Foreground = System.Windows.Media.Brushes.White,
-            Padding = new Thickness(10)
+            Padding = new Thickness(10),
+            Text = "Loading..."
         };
 
         var ext = Path.GetExtension(filePath).ToLower();
         textEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinitionByExtension(ext);
-        
-        try
+
+        // Load asynchronously
+        System.Threading.Tasks.Task.Run(() =>
         {
-            const long maxFileSize = 1 * 1024 * 1024; // 1MB
-            var fileInfo = new FileInfo(filePath);
-            
-            if (fileInfo.Length > maxFileSize)
+            try
             {
-                using (var reader = new StreamReader(filePath))
+                const long maxFileSize = 2 * 1024 * 1024; // 2MB
+                var fileInfo = new FileInfo(filePath);
+                string content;
+
+                if (fileInfo.Length > maxFileSize)
                 {
-                    char[] buffer = new char[1024 * 100]; // Read first 100KB
-                    int read = reader.ReadBlock(buffer, 0, buffer.Length);
-                    textEditor.Text = new string(buffer, 0, read) + "\r\n\r\n... (File too large, showing first 100KB) ...";
-                }
-            }
-            else
-            {
-                string content = File.ReadAllText(filePath);
-                if (ext == ".json")
-                {
-                    try
+                    using (var reader = new StreamReader(filePath))
                     {
-                        var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-                        var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
-                        content = System.Text.Json.JsonSerializer.Serialize(jsonDoc, options);
+                        char[] buffer = new char[1024 * 100]; // Read first 100KB
+                        int read = reader.ReadBlock(buffer, 0, buffer.Length);
+                        content = new string(buffer, 0, read) + "\r\n\r\n... (File too large, showing first 100KB) ...";
                     }
-                    catch { /* Keep original if parse fails */ }
                 }
-                textEditor.Text = content;
+                else
+                {
+                    content = File.ReadAllText(filePath);
+                    
+                    // Formatting
+                    if (ext == ".json")
+                    {
+                        try
+                        {
+                            var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+                            var jsonDoc = System.Text.Json.JsonDocument.Parse(content);
+                            content = System.Text.Json.JsonSerializer.Serialize(jsonDoc, options);
+                        }
+                        catch { /* Keep original */ }
+                    }
+                    else if (ext == ".xml" || ext == ".config" || ext == ".csproj" || ext == ".xaml")
+                    {
+                        try
+                        {
+                            var doc = System.Xml.Linq.XDocument.Parse(content);
+                            content = doc.ToString();
+                        }
+                        catch { /* Keep original */ }
+                    }
+                }
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    textEditor.Text = content;
+                });
             }
-        }
-        catch (Exception ex)
-        {
-            textEditor.Text = $"Error loading file: {ex.Message}";
-        }
+            catch (Exception ex)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    textEditor.Text = $"Error loading file: {ex.Message}";
+                });
+            }
+        });
 
         return textEditor;
     }

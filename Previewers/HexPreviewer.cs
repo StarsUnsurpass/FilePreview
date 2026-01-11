@@ -11,7 +11,8 @@ public class HexPreviewer : IPreviewer
 {
     private static readonly string[] Extensions = { 
         ".dll", ".exe", ".bin", ".dat", ".class", ".so", ".dylib", 
-        ".o", ".obj", ".lib", ".a", ".pdb", ".suo", ".user" 
+        ".o", ".obj", ".lib", ".a", ".pdb", ".suo", ".user",
+        ".iso", ".img", ".dmp", ".torrent"
     };
 
     public bool CanPreview(string filePath)
@@ -32,23 +33,35 @@ public class HexPreviewer : IPreviewer
             Foreground = System.Windows.Media.Brushes.White,
             WordWrap = false,
             HorizontalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
-            VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto
+            VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
+            Text = "Loading hex view..."
         };
 
-        try
+        System.Threading.Tasks.Task.Run(() =>
         {
-            // Read first 16KB max for preview to keep it fast
-            const int maxBytes = 16 * 1024; 
-            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            var buffer = new byte[Math.Min(stream.Length, maxBytes)];
-            stream.ReadExactly(buffer);
+            try
+            {
+                // Read first 16KB max for preview to keep it fast
+                const int maxBytes = 16 * 1024; 
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                var buffer = new byte[Math.Min(stream.Length, maxBytes)];
+                stream.ReadExactly(buffer);
 
-            textEditor.Text = FormatHex(buffer, stream.Length > maxBytes);
-        }
-        catch (Exception ex)
-        {
-            textEditor.Text = $"Error reading file: {ex.Message}";
-        }
+                string formattedHex = FormatHex(buffer, stream.Length > maxBytes);
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    textEditor.Text = formattedHex;
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    textEditor.Text = $"Error reading file: {ex.Message}";
+                });
+            }
+        });
 
         return textEditor;
     }

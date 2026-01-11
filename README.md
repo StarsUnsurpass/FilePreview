@@ -21,6 +21,19 @@ FilePreview 是一款旨在 Windows 平台上复刻并超越 macOS "Quick Look" 
 
 ## 更新日志
 
+### 2026-01-11 (v1.4.0)
+- **性能质变**:
+  - 全面重构预览引擎为异步加载模式 (`Task.Run`)，彻底解决大文件预览导致界面卡顿或假死的问题。
+  - **TextPreviewer**: 增加 XML/Config 文件自动格式化及大文件读取保护（仅读取前 100KB）。
+  - **ImagePreviewer/HexPreviewer/ZipPreviewer/CsvPreviewer**: 均已实现异步加载，并在加载过程中提供状态提示。
+- **格式支持扩展**:
+  - **文本/代码**: 新增支持 `.tsv`, `.diff`, `.patch`, `.prop`, `.conf`, `.gradle.kts`, `.reg`, `.srt`, `.vtt` 等。
+  - **二进制/镜像**: 新增支持 `.iso`, `.img`, `.dmp` (内存转储), `.torrent`。
+  - **表格**: CSV 预览器现在支持 TSV (Tab分隔) 并能自动检测分隔符。
+- **稳定性修复**:
+  - 修复了 `ShellPreviewer` 可能因外部预览处理程序崩溃导致主程序闪退的问题。
+  - 修复了 WPF 与 WinForms 在 `Application` 类引用上的歧义问题。
+
 ### 2026-01-09 (v1.3.0)
 - **新增预览器**:
   - **字体 (Font) 预览**: 支持 `.ttf`, `.otf`, `.woff`, `.woff2` 预览，展示多尺寸样例文本。

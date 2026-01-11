@@ -27,30 +27,48 @@ public class ZipPreviewer : IPreviewer
             Margin = new Thickness(0, 0, 0, 10)
         });
 
-        try
+        var statusText = new System.Windows.Controls.TextBlock { Text = "Loading archive contents...", Margin = new Thickness(0, 0, 0, 10) };
+        stackPanel.Children.Add(statusText);
+
+        System.Threading.Tasks.Task.Run(() =>
         {
-            using (var archive = ZipFile.OpenRead(filePath))
+            try
             {
-                stackPanel.Children.Add(new System.Windows.Controls.TextBlock { Text = $"Total entries: {archive.Entries.Count}", Margin = new Thickness(0,0,0,10) });
-                
-                var listView = new System.Windows.Controls.ListView { MaxHeight = 400 };
-                foreach (var entry in archive.Entries.Take(50))
+                using (var archive = ZipFile.OpenRead(filePath))
                 {
-                    listView.Items.Add($"{entry.FullName} ({entry.Length / 1024.0:F1} KB)");
+                    var entryCount = archive.Entries.Count;
+                    var entries = archive.Entries.Take(50).Select(e => $"{e.FullName} ({e.Length / 1024.0:F1} KB)").ToList();
+                    var hasMore = entryCount > 50;
+
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        stackPanel.Children.Remove(statusText);
+                        stackPanel.Children.Add(new System.Windows.Controls.TextBlock { Text = $"Total entries: {entryCount}", Margin = new Thickness(0, 0, 0, 10) });
+
+                        var listView = new System.Windows.Controls.ListView { MaxHeight = 400 };
+                        foreach (var item in entries)
+                        {
+                            listView.Items.Add(item);
+                        }
+
+                        if (hasMore)
+                        {
+                            listView.Items.Add("...");
+                        }
+
+                        stackPanel.Children.Add(listView);
+                    });
                 }
-                
-                if (archive.Entries.Count > 50)
-                {
-                    listView.Items.Add("...");
-                }
-                
-                stackPanel.Children.Add(listView);
             }
-        }
-        catch (Exception ex)
-        {
-            stackPanel.Children.Add(new System.Windows.Controls.TextBlock { Text = $"Error reading zip: {ex.Message}", Foreground = System.Windows.Media.Brushes.Red });
-        }
+            catch (Exception ex)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    statusText.Text = $"Error reading zip: {ex.Message}";
+                    statusText.Foreground = System.Windows.Media.Brushes.Red;
+                });
+            }
+        });
 
         return stackPanel;
     }
