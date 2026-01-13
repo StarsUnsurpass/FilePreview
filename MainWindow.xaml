@@ -18,6 +18,13 @@
         PreviewKeyDown="MainWindow_PreviewKeyDown"
         Deactivated="MainWindow_Deactivated">
     <Grid>
+        <Grid.Resources>
+            <Storyboard x:Key="FadeInStoryboard">
+                <DoubleAnimation Storyboard.TargetName="PreviewContent"
+                                 Storyboard.TargetProperty="Opacity"
+                                 From="0" To="1" Duration="0:0:0.2" />
+            </Storyboard>
+        </Grid.Resources>
         <Border x:Name="RootBorder" 
                 CornerRadius="12" 
                 Background="{DynamicResource ApplicationBackgroundBrush}"
@@ -73,7 +80,15 @@
                 </Border>
 
                 <!-- Content Area -->
-                <ContentControl x:Name="PreviewContent" Grid.Row="1" />
+                <ContentControl x:Name="PreviewContent" Grid.Row="1" Opacity="0" />
+
+                <!-- Loading Overlay -->
+                <Grid x:Name="LoadingOverlay" Grid.Row="1" Background="{DynamicResource ApplicationBackgroundBrush}" Visibility="Collapsed" IsHitTestVisible="False">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <ui:ProgressRing IsIndeterminate="True" Width="40" Height="40" />
+                        <TextBlock Text="Loading..." Margin="0,10,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                </Grid>
                 
                 <!-- Overlay Info Badge (Bottom Right) -->
                 <Border VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="15" Padding="8,4" CornerRadius="4" Background="#AA000000" x:Name="InfoBadge" IsHitTestVisible="False">

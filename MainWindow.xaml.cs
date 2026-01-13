@@ -132,13 +132,14 @@ public partial class MainWindow : FluentWindow
     private void About_Click(object sender, RoutedEventArgs e)
     {
         _isShowingDialog = true;
-        string aboutText = "FilePreview v1.4.0\n\n" +
+        string aboutText = "FilePreview v1.6.0\n\n" +
                            "一款 Windows 平台下的轻量级文件预览工具，旨在提供类似 macOS Quick Look 的极速体验。\n\n" +
                            "作者: StarsUnsurpass\n" +
                            "项目主页: github.com/StarsUnsurpass/FilePreview\n\n" +
                            "目前支持的格式:\n" +
-                           "• 图像: JPG, PNG, BMP, GIF, WEBP, ICO, TIFF\n" +
-                           "• 文本与代码: 几乎所有主流编程语言 (C#, JS, Py, Go, Rust, Java, Vue, Svelte, Astro 等) 及配置文件\n" +
+                           "• 图像: JPG, PNG, BMP, GIF, WEBP, ICO, TIFF, SVG\n" +
+                           "• 3D 模型: STL, OBJ, 3DS, PLY\n" +
+                           "• 文本与代码: 几乎所有主流编程语言及配置文件\n" +
                            "• 专业文档: PDF, Markdown\n" +
                            "• 字体: TTF, OTF, WOFF, WOFF2\n" +
                            "• 证书: CER, CRT, DER, PEM\n" +
@@ -231,7 +232,7 @@ public partial class MainWindow : FluentWindow
         }
     }
 
-    public void ShowPreview(string filePath)
+    public async void ShowPreview(string filePath)
     {
         try
         {
@@ -241,6 +242,19 @@ public partial class MainWindow : FluentWindow
             FormatInfoText.Text = System.IO.Path.GetExtension(filePath).ToUpper().TrimStart('.');
 
             UpdateFileIcon(filePath);
+
+            // Show loading state
+            LoadingOverlay.Visibility = Visibility.Visible;
+            PreviewContent.Opacity = 0;
+            
+            // Show window immediately so user sees something happening
+            this.Show();
+            this.Activate();
+            this.Focus();
+
+            // Run preview generation on background thread if possible, or just defer UI creation
+            // Note: UI controls must be created on UI thread, but we can delay slightly to allow window to render
+            await System.Threading.Tasks.Task.Delay(10); 
 
             var previewer = _previewerFactory.GetPreviewer(filePath);
             FrameworkElement content;
@@ -264,15 +278,25 @@ public partial class MainWindow : FluentWindow
 
             PreviewContent.Content = content;
             AdjustWindowSize(content, filePath);
-
-            this.Show();
-            this.Activate();
-            this.Focus();
+            
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            
+            // Play Fade In Animation
+            if (TryFindResource("FadeInStoryboard") is System.Windows.Media.Animation.Storyboard sb)
+            {
+                sb.Begin();
+            }
+            else
+            {
+                PreviewContent.Opacity = 1;
+            }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error showing preview for file: {FilePath}", filePath);
             System.Windows.MessageBox.Show($"Error showing preview: {ex.Message}");
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            PreviewContent.Opacity = 1;
         }
     }
 

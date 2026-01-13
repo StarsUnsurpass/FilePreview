@@ -8,6 +8,8 @@ public class PreviewerFactory
     private readonly List<Lazy<IPreviewer>> _previewers = new()
     {
         new Lazy<IPreviewer>(() => new FolderPreviewer()),
+        new Lazy<IPreviewer>(() => new PdfPreviewer()),
+        new Lazy<IPreviewer>(() => new ThreeDPreviewer()),
         new Lazy<IPreviewer>(() => new MarkdownPreviewer()),
         new Lazy<IPreviewer>(() => new WebPreviewer()),
         new Lazy<IPreviewer>(() => new CsvPreviewer()),

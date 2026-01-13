@@ -21,6 +21,17 @@ FilePreview 是一款旨在 Windows 平台上复刻并超越 macOS "Quick Look" 
 
 ## 更新日志
 
+### 2026-01-13 (v1.6.0)
+- **格式支持扩展**:
+  - **3D 模型**: 新增 `.stl`, `.obj`, `.3ds`, `.ply` 文件的 3D 预览支持，基于 HelixToolkit，支持鼠标交互查看。
+  - **PDF**: 独立的 PDF 预览器逻辑优化，提升复杂文档的加载稳定性。
+- **界面与体验**:
+  - **流畅动画**: 为预览窗体内容切换添加了优雅的淡入动画，消除视觉跳变。
+  - **加载状态**: 引入了全局加载遮罩 (Loading Overlay) 与进度环，实时反馈预览生成进度。
+- **性能质变**:
+  - **秒速响应**: 实现主窗口预初始化及后台热启动模式，首次按下空格即可瞬间弹出预览。
+  - **架构改进**: 优化 `App.xaml` 生命周期管理，应用现在更像一个成熟的常驻托盘工具。
+
 ### 2026-01-11 (v1.4.0)
 - **性能质变**:
   - 全面重构预览引擎为异步加载模式 (`Task.Run`)，彻底解决大文件预览导致界面卡顿或假死的问题。
@@ -76,7 +87,8 @@ FilePreview 是一款旨在 Windows 平台上复刻并超越 macOS "Quick Look" 
 
 FilePreview 采用插件化架构，目前已支持以下格式：
 
-- **图像**: JPG, PNG, BMP, GIF, WEBP, ICO, TIFF。
+- **图像**: JPG, PNG, BMP, GIF, WEBP, ICO, TIFF, SVG。
+- **3D 模型**: STL, OBJ, 3DS, PLY (支持缩放旋转)。
 - **文本与代码**: 几乎所有主流编程语言 (C#, JS, Py, Go, Rust, Java, PHP 等) 及各类配置文件（支持语法高亮）。
 - **二进制文件**: DLL, EXE, BIN, DAT 等（十六进制视图）。
 - **专业文档**:
@@ -100,6 +112,7 @@ FilePreview 采用插件化架构，目前已支持以下格式：
   - `Markdig`: Markdown 解析。
   - `Microsoft.Windows.CsWin32`: 现代化的 P/Invoke 生成。
   - `Serilog`: 结构化日志记录。
+  - `HelixToolkit`: 3D 模型渲染引擎。
 
 ## 使用说明
 

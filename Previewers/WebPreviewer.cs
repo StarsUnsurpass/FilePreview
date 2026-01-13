@@ -8,7 +8,7 @@ namespace FilePreview.Previewers;
 
 public class WebPreviewer : IPreviewer
 {
-    private static readonly string[] Extensions = { ".pdf", ".html", ".htm", ".svg", ".mhtml" };
+    private static readonly string[] Extensions = { ".html", ".htm", ".svg", ".mhtml" };
 
     public bool CanPreview(string filePath)
     {

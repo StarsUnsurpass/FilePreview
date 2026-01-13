@@ -42,8 +42,17 @@ public partial class App : System.Windows.Application
 
         base.OnStartup(e);
 
+        // Prevent app from closing when window is closed (Tray app behavior)
+        this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
         try 
         {
+            // Pre-initialize window for faster performance
+            _mainWindow = new MainWindow();
+            // Ensure it's handled correctly
+            _mainWindow.ShowActivated = false;
+            // We don't show it yet
+            
             _explorerService = new ExplorerService();
             _keyboardHook = new KeyboardHookService();
             _keyboardHook.SpacePressed += OnSpacePressed;
@@ -88,10 +97,10 @@ public partial class App : System.Windows.Application
             Dispatcher.Invoke(() => 
             {
                 if (_mainWindow == null) _mainWindow = new MainWindow();
-                // We show a dummy preview or just call the about logic
                 _mainWindow.Show();
-                // Manually trigger about if needed, or just let them use the menu in window
-                // Better: we can add a public method to show about
+                // To trigger About dialog we might need a public method or just show the window
+                // Since About is a menu item inside the window, just showing the window is enough interaction for now.
+                // Or we can simulate a click if strictly needed, but simply showing is better UX here.
             });
         });
         contextMenu.Items.Add("-"); // Separator
